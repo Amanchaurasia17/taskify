@@ -1,11 +1,20 @@
 [phases.setup]
-nixPacks = '1.0'
+nixPacks = '1.21'
 
 [phases.install]
-cmds = ['npm ci', 'cd server && npm ci']
+cmds = [
+  'echo "Installing root dependencies..."',
+  'npm ci --only=production',
+  'echo "Installing server dependencies..."', 
+  'cd server && npm ci --only=production'
+]
 
 [phases.build]
-cmds = ['echo "Installing server dependencies"']
+cmds = ['echo "Build completed - no build step needed for Express server"']
 
 [start]
-cmd = 'npm start'
+cmd = 'cd server && node index.js'
+
+[variables]
+NODE_ENV = 'production'
+PORT = '3000'

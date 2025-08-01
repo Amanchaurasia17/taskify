@@ -5,10 +5,11 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Basic middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Enhanced CORS middleware for Netlify frontend
 app.use((req, res, next) => {
@@ -41,7 +42,7 @@ app.use((req, res, next) => {
 
 // Log all requests
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
   next();
 });
 
@@ -55,20 +56,25 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
+// Health check endpoint - CRITICAL for Railway deployment
 app.get('/health', (req, res) => {
   const healthCheck = {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    message: 'TASKIFY API Server is healthy',
+    message: 'TASKIFY API Server is healthy and ready',
     environment: process.env.NODE_ENV || 'development',
     version: '1.0.0',
     port: PORT,
-    cors: 'enabled'
+    cors: 'enabled',
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+    },
+    serverReady: true
   };
   
-  console.log('Health check requested:', healthCheck);
+  console.log('✅ Health check requested - Server is healthy');
   res.status(200).json(healthCheck);
 });
 
@@ -131,7 +137,7 @@ app.use('*', (req, res) => {
 });
 
 // Error handler
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
   console.error('Server error:', error);
   res.status(500).json({
     error: 'Internal server error',
@@ -140,34 +146,55 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Start server
+// Start server with enhanced Railway compatibility
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('🚀 TASKIFY Server Starting...');
   console.log(`📡 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`💚 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔗 API info: http://localhost:${PORT}/api`);
+  console.log(`💚 Health check: /health`);
+  console.log(`🔗 API endpoints: /, /api, /auth/*`);
   console.log('✅ Server ready to handle requests with CORS enabled');
+  console.log('🛡️  Railway deployment optimized');
 });
 
-// Handle server errors
+// Enhanced error handling for Railway
 server.on('error', (error) => {
   console.error('❌ Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  }
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('📴 SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
-  });
+server.on('listening', () => {
+  console.log(`🎯 Server successfully bound to port ${PORT}`);
 });
 
-process.on('SIGINT', () => {
-  console.log('📴 SIGINT received, shutting down gracefully');
+// Graceful shutdown for Railway deployments
+const gracefulShutdown = (signal) => {
+  console.log(`📴 ${signal} received, shutting down gracefully`);
   server.close(() => {
-    console.log('✅ Server closed');
+    console.log('✅ Server closed successfully');
     process.exit(0);
   });
+  
+  // Force close after 10 seconds
+  setTimeout(() => {
+    console.log('❌ Force closing server');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
