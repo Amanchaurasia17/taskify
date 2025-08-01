@@ -5,6 +5,10 @@ netlify.toml
 *.md
 docs/
 .dockerignore
-Dockerfile
+Dockerfile*
 docker-compose*.yml
 deploy-docker-hub.*
+
+# Force Railway to use Nixpacks, not Docker
+*.dockerfile
+docker/

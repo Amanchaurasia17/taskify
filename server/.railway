@@ -1,0 +1,3 @@
+# Railway: Use Nixpacks for Node.js deployment
+# This file forces Railway to use Nixpacks instead of Docker
+NIXPACKS=true
