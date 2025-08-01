@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
-    "start": "vite",
+    "start": "cd server && npm start",
+    "start:frontend": "vite",
     "clean": "rm -rf dist",
     "dev:server": "cd server && npm run dev",
     "setup": "npm install && cd server && npm install"

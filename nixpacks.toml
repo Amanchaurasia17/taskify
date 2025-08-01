@@ -1,0 +1,11 @@
+[phases.setup]
+nixPacks = '1.0'
+
+[phases.install]
+cmds = ['npm ci', 'cd server && npm ci']
+
+[phases.build]
+cmds = ['echo "Installing server dependencies"']
+
+[start]
+cmd = 'npm start'
