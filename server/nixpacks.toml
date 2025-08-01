@@ -1,8 +1,9 @@
+# Force Railway to use Node.js only
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm"]
+nixPkgs = ["nodejs_18", "npm"]
 
 [phases.install]
-cmds = ["npm ci --only=production"]
+cmds = ["npm install"]
 
 [phases.start]
 cmd = "node index.js"
