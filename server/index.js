@@ -79,9 +79,19 @@ app.get('/api', (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/taskify')
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
+const mongoUri = process.env.MONGODB_URI || 
+  `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority` ||
+  'mongodb://localhost:27017/taskify';
+
+mongoose.connect(mongoUri)
+.then(() => {
+  console.log('MongoDB connected successfully');
+  console.log('Database:', process.env.MONGO_DATABASE || 'taskify');
+})
+.catch(err => {
+  console.error('MongoDB connection error:', err);
+  process.exit(1);
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
