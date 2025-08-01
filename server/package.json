@@ -8,7 +8,13 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["express", "mongodb", "jwt", "task-management", "file-upload"],
+  "keywords": [
+    "express",
+    "mongodb",
+    "jwt",
+    "task-management",
+    "file-upload"
+  ],
   "author": "Aman Chaurasia <amanchaurasiya92@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -21,7 +27,7 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^4.19.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

@@ -1,33 +1,28 @@
 const express = require('express');
-
-// Ultra-minimal server for Railway
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Basic JSON middleware
+// ✅ Basic Middleware
 app.use(express.json());
 
-// Ultra-simple CORS
+// ✅ CORS Middleware (ultra-minimal)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', '*');
   res.header('Access-Control-Allow-Headers', '*');
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-    return;
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 
-// Basic logging
+// ✅ Logger
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Root endpoint
+// ✅ Root route
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'TASKIFY API Server Running',
     status: 'OK',
     timestamp: new Date().toISOString(),
@@ -35,7 +30,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check
+// ✅ Health route
 app.get('/health', (req, res) => {
   console.log('Health check requested');
   res.status(200).json({
@@ -46,7 +41,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Auth endpoints
+// ✅ Auth routes (dummy)
 app.post('/auth/register', (req, res) => {
   console.log('Register:', req.body);
   res.json({
@@ -65,34 +60,41 @@ app.post('/auth/login', (req, res) => {
   });
 });
 
-// 404 handler
+// ✅ 404 fallback
 app.use('*', (req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Not found',
     path: req.originalUrl
   });
 });
 
-// Start server
+// ✅ Start server with crash guard
 console.log('Starting TASKIFY server...');
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ TASKIFY Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
-  console.log(`� Health: /health`);
-});
+try {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ TASKIFY Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
+    console.log(`💓 Healthcheck: http://localhost:${PORT}/health`);
+  });
 
-server.on('error', (error) => {
-  console.error('❌ Server error:', error);
+  // ✅ Handle runtime errors
+  server.on('error', (error) => {
+    console.error('❌ Server startup error:', error.message);
+    process.exit(1);
+  });
+
+  // ✅ Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received');
+    server.close(() => process.exit(0));
+  });
+
+  process.on('SIGINT', () => {
+    console.log('SIGINT received');
+    server.close(() => process.exit(0));
+  });
+
+} catch (error) {
+  console.error('❌ Uncaught Startup Crash:', error.message);
   process.exit(1);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received');
-  server.close(() => process.exit(0));
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT received');
-  server.close(() => process.exit(0));
-});
+}
