@@ -1,18 +1,2 @@
-[phases.setup]
-nixPacks = '1.21'
-
-[phases.install]
-cmds = [
-  'echo "Installing server dependencies..."', 
-  'cd server && npm ci --only=production'
-]
-
-[phases.build]
-cmds = ['echo "Build completed - server ready"]
-
 [start]
-cmd = 'cd server && npm start'
-
-[variables]
-NODE_ENV = 'production'
-PORT = '3000'
+cmd = "cd server && npm start"
