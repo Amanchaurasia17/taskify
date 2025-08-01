@@ -19,12 +19,15 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
+    'https://taskifyma.netlify.app',
     process.env.FRONTEND_URL,
     /\.netlify\.app$/,
     /\.railway\.app$/
   ].filter(Boolean),
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
 app.use(cors(corsOptions));
