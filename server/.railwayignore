@@ -1,0 +1,10 @@
+# Ignore frontend-related files for Railway backend deployment
+frontend-nginx.conf
+nginx.conf
+netlify.toml
+*.md
+docs/
+.dockerignore
+Dockerfile
+docker-compose*.yml
+deploy-docker-hub.*

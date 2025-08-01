@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs", "npm"]
+nixPkgs = ["nodejs-18_x", "npm"]
 
 [phases.install]
-cmds = ["npm install"]
-
-[phases.build]
-cmds = ["echo 'No build step needed for backend'"]
+cmds = ["npm ci --only=production"]
 
 [phases.start]
-cmd = "npm start"
+cmd = "node index.js"
+
+[variables]
+NODE_ENV = "production"
