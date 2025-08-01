@@ -79,20 +79,24 @@ app.get('/api', (req, res) => {
 });
 
 // MongoDB connection
-const mongoUri = process.env.MONGODB_URI || 
-  `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority` ||
-  'mongodb://localhost:27017/taskify';
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/taskify';
+
+console.log('Attempting to connect to MongoDB...');
+console.log('MongoDB URI:', mongoUri ? 'URI provided' : 'No URI provided');
 
 mongoose.connect(mongoUri)
 .then(() => {
-  console.log('MongoDB connected successfully');
-  console.log('Database:', process.env.MONGO_DATABASE || 'taskify');
+  console.log('✅ MongoDB connected successfully');
+  console.log('Database:', mongoose.connection.name);
 })
 .catch(err => {
-  console.error('MongoDB connection error:', err);
+  console.error('❌ MongoDB connection error:', err.message);
+  console.error('Full error:', err);
   process.exit(1);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 TASKIFY Server is running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📅 Started at: ${new Date().toISOString()}`);
 });
