@@ -1,8 +1,11 @@
+[build]
+buildCommand = "cd server && npm install --production"
+
 [deploy]
 startCommand = "cd server && npm start"
 healthcheckPath = "/health"
 restartPolicyType = "on_failure"
+healthcheckTimeout = 100
 
 [env]
 NODE_ENV = "production"
-PORT = "3000"
