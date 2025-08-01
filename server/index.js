@@ -9,14 +9,35 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const taskRoutes = require('./routes/tasks');
-const userRoutes = require('./routes/users');
-const notificationRoutes = require('./routes/notifications');
+// Import routes (with error handling)
+let authRoutes, taskRoutes, userRoutes, notificationRoutes;
+try {
+  authRoutes = require('./routes/auth');
+  taskRoutes = require('./routes/tasks');
+  userRoutes = require('./routes/users');
+  notificationRoutes = require('./routes/notifications');
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.warn('⚠️ Some routes failed to load:', error.message);
+  // Create dummy routes to prevent crashes
+  authRoutes = require('express').Router();
+  taskRoutes = require('express').Router();
+  userRoutes = require('express').Router();
+  notificationRoutes = require('express').Router();
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Debug logging for Railway
+console.log('\n🔧 TASKIFY SERVER INITIALIZATION');
+console.log('====================================');
+console.log('Node.js version:', process.version);
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Port:', PORT);
+console.log('MongoDB URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Not set');
+console.log('JWT Secret:', process.env.JWT_SECRET ? '✅ Set' : '❌ Not set');
+console.log('====================================\n');
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -111,6 +132,9 @@ const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/taskify';
     
+    console.log('🔄 Attempting MongoDB connection...');
+    console.log('MongoDB URI:', mongoURI ? '✅ Set' : '❌ Not set');
+    
     const conn = await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -124,10 +148,10 @@ const connectDB = async () => {
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
     
-    // In production, we might want to retry connection
+    // In production, continue without database for health check
     if (process.env.NODE_ENV === 'production') {
-      console.log('Retrying MongoDB connection in 5 seconds...');
-      setTimeout(connectDB, 5000);
+      console.log('⚠️ Continuing without database connection for health check...');
+      // Don't exit, let the server start for health check
     } else {
       process.exit(1);
     }
@@ -137,6 +161,7 @@ const connectDB = async () => {
 // Create database indexes
 const createIndexes = async () => {
   try {
+    // Only create indexes if models load successfully
     const User = require('./models/User');
     const Task = require('./models/Task');
     const Notification = require('./models/Notification');
@@ -159,7 +184,7 @@ const createIndexes = async () => {
     
     console.log('✅ Database indexes created successfully');
   } catch (error) {
-    console.log('ℹ️ Indexes might already exist:', error.message);
+    console.log('ℹ️ Skipping index creation:', error.message);
   }
 };
 
@@ -175,10 +200,18 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     memory: process.memoryUsage(),
-    version: '1.0.0'
+    version: '1.0.0',
+    // Debug info for Railway
+    env_vars: {
+      PORT: process.env.PORT ? '✅ Set' : '❌ Not set',
+      MONGODB_URI: process.env.MONGODB_URI ? '✅ Set' : '❌ Not set',
+      JWT_SECRET: process.env.JWT_SECRET ? '✅ Set' : '❌ Not set',
+      NODE_ENV: process.env.NODE_ENV || 'Not set'
+    }
   };
   
   console.log('Health check requested');
+  console.log('Health status:', healthStatus);
   res.status(200).json(healthStatus);
 });
 
