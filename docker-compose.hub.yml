@@ -1,0 +1,100 @@
+# 🐳 Docker Compose for TASKIFY - Using Docker Hub Images
+# Repository: https://hub.docker.com/r/aman947/taskify
+# 
+# Quick Start:
+#   docker-compose -f docker-compose.hub.yml up -d
+#
+# Access:
+#   Frontend:  http://localhost:3000
+#   Backend:   http://localhost:5000
+#   MongoDB:   mongodb://localhost:27017
+
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:latest
+    container_name: taskify-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    environment:
+      MONGO_INITDB_DATABASE: taskify
+    networks:
+      - taskify-network
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/taskify --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Backend API Server (Docker Hub Image)
+  backend:
+    image: aman947/taskify:backend
+    container_name: taskify-backend
+    ports:
+      - "5000:5000"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/taskify
+      JWT_SECRET: your_super_secret_jwt_key_minimum_32_characters_for_production_change_this
+      JWT_EXPIRE: 30d
+      NODE_ENV: production
+      PORT: 5000
+      MAX_FILE_SIZE: 10485760
+      FRONTEND_URL: http://localhost:3000
+    volumes:
+      - backend-uploads:/app/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - taskify-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Web Server (Docker Hub Image)  
+  frontend:
+    image: aman947/taskify:frontend
+    container_name: taskify-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - taskify-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  mongo-data:
+    driver: local
+  backend-uploads:
+    driver: local
+
+networks:
+  taskify-network:
+    driver: bridge
+
+# Labels for better management
+x-labels: &labels
+  com.taskify.version: "1.0.0"
+  com.taskify.description: "Professional Task Management Platform"
+  com.taskify.maintainer: "Aman Chaurasiya <amanchaurasiya92@gmail.com>"
+  com.taskify.source: "https://github.com/Amanchaurasia17/taskify"
+  com.taskify.docker-hub: "https://hub.docker.com/r/aman947/taskify"
