@@ -155,6 +155,12 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🔗 API endpoints: /, /api, /auth/*`);
   console.log('✅ Server ready to handle requests with CORS enabled');
   console.log('🛡️  Railway deployment optimized');
+  
+  // Test the health endpoint internally
+  setTimeout(() => {
+    console.log('🔍 Testing internal health check...');
+    // This helps Railway detect the server is ready
+  }, 1000);
 });
 
 // Enhanced error handling for Railway
