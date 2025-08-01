@@ -12,7 +12,7 @@
 
 **A modern, enterprise-grade task management application built with the MERN stack**
 
-[🌐 Live Demo](#) • [📖 Documentation](#documentation) • [🐳 Docker Deploy](#docker-deployment) • [🚀 Quick Start](#quick-start)
+[🌐 Live Demo](https://taskifyma.netlify.app) • [📖 Documentation](#documentation) • [🐳 Docker Deploy](#docker-deployment) • [🚀 Quick Start](#quick-start) • [📋 Deployment Guide](./DEPLOYMENT_GUIDE.md)
 
 </div>
 
@@ -858,6 +858,6 @@ SOFTWARE.
 
 ### 🚀 **Ready to transform your task management?**
 
-[🌐 Live Demo](https://your-demo-url.netlify.app) • [📖 Documentation](./docs) • [🐳 Docker Hub](https://hub.docker.com/r/aman947/taskify)
+[🌐 Live Demo](https://taskifyma.netlify.app) • [📖 Documentation](./docs) • [🐳 Docker Hub](https://hub.docker.com/r/aman947/taskify) • [📋 Deployment Guide](./DEPLOYMENT_GUIDE.md)
 
 </div>
