@@ -16,14 +16,27 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://taskifyma.netlify.app',
-    process.env.FRONTEND_URL,
-    /\.netlify\.app$/,
-    /\.railway\.app$/
-  ].filter(Boolean),
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://taskifyma.netlify.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    console.log('Request origin:', origin);
+    console.log('Allowed origins:', allowedOrigins);
+    
+    if (allowedOrigins.includes(origin) || /\.netlify\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS blocked origin:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -31,7 +44,33 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Additional CORS headers middleware (backup)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin === 'https://taskifyma.netlify.app' || 
+      origin === process.env.FRONTEND_URL ||
+      (origin && origin.endsWith('.netlify.app'))) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
